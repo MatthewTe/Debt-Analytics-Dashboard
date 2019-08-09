@@ -12,14 +12,14 @@ conn = sqlite3.connect('Fundementals.db')
 c = conn.cursor()
 
 """
-MODULE NAME: df_main():
+MODULE NAME: db_update():
 FUNCTION: This module uses the requests and bs4 packages to collect data from the stockpup.com
 website and downloads all the avalible fundemental data .csv files as dataframes. It
 then creates a main dataframe containing all the appended .csv files indexed by ticker.
 This large, main dataframe is then stored in the 'Fundementals.db' sqlite3 database.
 OUTPUT: Populates a sqlite3 database.
 """
-def df_main():
+def db_update():
     # Dowloading the HTML data:
     url = "http://www.stockpup.com/data/"
     res = requests.get(url)
@@ -63,3 +63,33 @@ def df_main():
 
     # Storing the now created main_dataframe to the sqlite3 database:
     main_df.to_sql('Fundementals', con =conn, if_exists='replace')
+
+
+
+"""
+MODULE NAME: pull_request():
+FUNCTION: This module is the main module of the Database.py script. it is used to
+automate the sqlite3 pull request for the data stored in the 'Fundementals.db'. It uses
+the pandas .read_sql_query() function to convert the data query directly into a pandas
+dataframe.
+INPUT: Ticker(str), index(str), column_main(str)
+OUTPUT: returns a pandas dataframe
+"""
+def pull_request(Ticker, index, column_main):
+
+    # Nested function that adds quotation tags: 'to a string':
+    def nest_quotes(variable):
+         string_variable = "'" + variable + "'"
+         return string_variable
+
+    # Nested function that adds quotation tags: 'to a string':
+    def nest_brackets(variable):
+        bracket_string = "[" + variable + "]"
+        return bracket_string
+
+    """Creating the dataframe from the .read_sql_query() function and substituting
+    key elements in the sql query string with input variables so that it pulls the desired
+    column indexed by the desired row."""
+    df = pd.read_sql_query("SELECT DISTINCT " + nest_brackets(index) + "," + "\
+     " + nest_brackets(column_main) + " FROM Fundementals WHERE Ticker = " + nest_quotes(Ticker) , con = conn, index_col = index)
+    return df
