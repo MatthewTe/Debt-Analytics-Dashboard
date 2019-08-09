@@ -50,7 +50,7 @@ def df_main():
     for i in url_list:
         file_name = url_list[counter].replace("http://www.stockpup.com/data/", "")
         file_name = file_name.replace('_quarterly_financial_data', '')
-        file_name = file_name.replace('.csv', '')
+        file_name = file_name.replace('.csv', '') # Removing all the values from the link that is not the ticker name
         ticker_list.append(file_name)
         df = pd.read_csv(url_list[counter]) # Pulling the .csv from each href url in the list
         # converting it to a data frame
