@@ -6,10 +6,32 @@ import bs4
 import pandas as pd
 
 
+"""
+MODULE NAME: nest_quotes()
+FUNCTION: Nests the input string variable between 'single quotes' for sql query
+INPUT: variable(str)
+OUTPUT: returns string
+"""
+def nest_quotes(variable):
+     string_variable = "'" + variable + "'"
+     return string_variable
+
+"""
+MODULE NAME: nest_brackets()
+FUNCTION: Nests the input string variable between [square brackers] for sql query
+INPUT: variable(str)
+OUTPUT: returns string
+"""
+def nest_brackets(variable):
+    bracket_string = "[" + variable + "]"
+    return bracket_string
+
+
 # Creating the connection to the database:
 conn = sqlite3.connect('Fundementals.db')
 # Creating the cursor to interact with the database:
 c = conn.cursor()
+
 
 """
 MODULE NAME: db_update():
@@ -67,29 +89,37 @@ def db_update():
 
 
 """
-MODULE NAME: pull_request():
-FUNCTION: This module is the main module of the Database.py script. it is used to
-automate the sqlite3 pull request for the data stored in the 'Fundementals.db'. It uses
-the pandas .read_sql_query() function to convert the data query directly into a pandas
-dataframe.
+MODULE NAME: pull_request_specific():
+FUNCTION: This module is used to automate the sqlite3 pull request for the data
+stored in the 'Fundementals.db'. It uses the pandas .read_sql_query() function
+to convert the data query directly into a pandas dataframe.
 INPUT: Ticker(str), index(str), column_main(str)
-OUTPUT: returns a pandas dataframe
+OUTPUT: Returns a pandas dataframe
 """
-def pull_request(Ticker, index, column_main):
-
-    # Nested function that adds quotation tags: 'to a string':
-    def nest_quotes(variable):
-         string_variable = "'" + variable + "'"
-         return string_variable
-
-    # Nested function that adds [Square brackets to the string variable]:
-    def nest_brackets(variable):
-        bracket_string = "[" + variable + "]"
-        return bracket_string
+def pull_request_specific(Ticker, index, column_main):
 
     """Creating the dataframe from the .read_sql_query() function and substituting
     key elements in the sql query string with input variables so that it pulls the desired
     column indexed by the desired row."""
     df = pd.read_sql_query("SELECT DISTINCT " + nest_brackets(index) + "," + "\
      " + nest_brackets(column_main) + " FROM Fundementals WHERE Ticker = " + nest_quotes(Ticker) , con = conn, index_col = index)
+    return df
+
+
+
+"""
+MODULE NAME: pull_request_ticker():
+FUNCTION: This module automates the sqlite3 pull request for the data stored in
+the 'Fundementals.db' database. The input variable for the function is used in the query
+sql string to query all columns corresponding to the input ticker. The function that
+pulls the data into a pandas dataframe is the .read_sql_query() function.
+INPUT: Ticker(str)
+OUTPUT: Returns a pandas dataframe
+"""
+def pull_request_ticker(Ticker):
+    # creating the dataframe using .read_sql_query()
+    df = pd.read_sql_query("SELECT * FROM Fundementals WHERE \
+    Ticker = " + nest_quotes(Ticker), con = conn, index_col = 'Quarter end' )
+    # Dropping the redundant 'Ticker' and 'index' sql query identifiers:
+    df = df.drop(['Ticker', 'index'], axis = 1)
     return df
