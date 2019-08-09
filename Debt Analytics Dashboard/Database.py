@@ -82,7 +82,7 @@ def pull_request(Ticker, index, column_main):
          string_variable = "'" + variable + "'"
          return string_variable
 
-    # Nested function that adds quotation tags: 'to a string':
+    # Nested function that adds [Square brackets to the string variable]:
     def nest_brackets(variable):
         bracket_string = "[" + variable + "]"
         return bracket_string
