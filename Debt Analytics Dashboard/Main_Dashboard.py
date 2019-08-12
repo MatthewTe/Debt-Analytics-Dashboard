@@ -1,7 +1,7 @@
 # Importing the sqlite3 connectors:
 import sqlite3
 import pandas as pd
-
+import numpy as np
 # Importing the database management modules:
 from Database import pull_request_specific
 from Database import pull_request_ticker
@@ -77,16 +77,27 @@ def update_debt_ratio_graph(input_data):
     df = pull_request_ticker(input_data)
     df = df.replace('None', 0)
     df = df.astype({'Long-term debt to equity ratio': 'float'}) # converting the df types
+    # Creating the rolling average trendline for the debt_ratio: (window size = 5)
+    rolling_mean = df['Long-term debt to equity ratio'].rolling(5, min_periods=4).mean()
     # Returning the dcc.Graph as a plotted figure:
-    # TODO: Add Long term Debt to Equity Ratio trendline to dcc.Graph below:
     return dcc.Graph(
-    id='Debt_Ratio_Graph',
+    id='Debt_2_Equity_Graph',
     figure = {'data':[
-        {'x': df.index, 'y': df['Long-term debt to equity ratio'], 'type': 'bar', 'name': input_data}],
+        {'x': df.index, 'y': df['Long-term debt to equity ratio'], 'type': 'bar', 'name': input_data},
+        {'x': df.index, 'y': rolling_mean, 'type': 'line', 'name':  input_data + ' Moving Average'}
+                    ],
         'layout': {'title': input_data + ' Long-Term Debt to Equity Ratio'}
-    })
+            })
 
 # TODO: Add graphs plotting assets, Liabilities and the ratio between them
 
-#if __name__ == '__main__':
-    #app.run_server(debug=True)
+# Creating a generic function to run the server on local machine:
+def server_run(bool):
+    if bool == True:
+        if __name__ == '__main__':
+            app.run_server(debug=True)
+    else:
+        pass
+
+
+server_run(False)
