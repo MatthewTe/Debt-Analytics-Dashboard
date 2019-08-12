@@ -63,12 +63,12 @@ app = dash.Dash()
 app.layout = html.Div(children=[
     # Creating the input child of the Dash app:
     dcc.Input(id='ticker_input', value= '', type='text'),
-    html.Div(id='debt_graph_output')
+    html.Div(id='Debt_2_Equity_Graph_output')
     ])
 
 
 @app.callback(
-    Output(component_id='debt_graph_output', component_property='children'),
+    Output(component_id='Debt_2_Equity_Graph_output', component_property='children'),
     [Input(component_id='ticker_input', component_property='value')])
 def update_debt_ratio_graph(input_data):
     input_data = input_data.upper()
