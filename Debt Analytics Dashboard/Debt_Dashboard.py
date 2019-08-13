@@ -1,7 +1,9 @@
-# Importing the sqlite3 connectors:
+# Importing misc packages:
 import sqlite3
 import pandas as pd
 import numpy as np
+import math
+import statistics
 # Importing the database management modules:
 from Database import pull_request_specific
 from Database import pull_request_ticker
@@ -68,7 +70,9 @@ app.layout = html.Div(children=[
     # The .Div Tag containing the First Debt_2_Equity_Graph:
     html.Div(id ='Debt_2_Equity_Graph_output'),
     # The .Div Tag containing the Assets/Liabilities ratio:
-    html.Div(id = 'Debt_Ratio_Graph_output')
+    html.Div(id = 'Debt_Ratio_Graph_output'),
+    # The .Div Tag containing the Earnings and Earnings Volatility data:
+    html.Div(id = 'Earnings_data_output')
     ])
 
 # Generates the Debt to Equity Graph based on user input:
@@ -132,7 +136,38 @@ def update_debt_Ratio_graph(input_data):
         )
 
 
-# TODO: Add Earnings Graph and Earnings Volatility go.scatter
+# Generates the Earnings and Earnings volatility Graph based on user input:
+@app.callback(
+    Output(component_id='Earnings_data_output', component_property='children'),
+    [Input(component_id='ticker_input', component_property='value')])
+def update_Earnings_graphs(input_data):
+    input_data = input_data.upper()
+
+    # Creating the dataframe that will be plotted:
+    df = pull_request_ticker(input_data)
+    df = df.replace('None', 0)
+    df = df.astype({'Earnings': 'float'})
+
+    # Creating the plotly subplots to be inserted into the dcc.Graph()
+    trace_Earnings = go.Bar(x=df.index, y=df.Earnings, name=input_data + ' Earnings',
+     marker_color='rgb(0, 0, 0)')
+    trace_Earnings_vol = go.Scatter(x=df.index, y=df.Earnings,
+     name=input_data + ' Earnings Volatility ', marker_color= 'rgb(0, 0, 0)')
+
+
+    # Creating the main subplot figure that will be inserted into the dcc.Graph():
+    fig = make_subplots(rows=2,cols=1, subplot_titles=('Earnings Data', 'Earnings Volatility'),
+    row_heights=[0.7, 0.3])
+    fig = fig.add_trace(trace_Earnings,row=1,col=1)
+    fig = fig.add_trace(trace_Earnings_vol,row=2,col=1)
+    fig = fig.update_layout(title_text="Earnings Data with Volatility")
+
+    # Returing the graph to the html.Div:
+    return dcc.Graph(
+        id = 'Earnings_data_graph',
+        figure = fig
+            )
+
 
 
 # Creating a generic function to run the server on local machine:

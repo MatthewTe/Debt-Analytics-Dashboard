@@ -1,9 +1,22 @@
 # Importing the necessary Packages:
 import sqlite3
+from sqlalchemy import create_engine
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 
+import os
+import sys
 import requests
 import bs4
 import pandas as pd
+
+# Creating the connection to the database:
+conn = sqlite3.connect('Fundementals.db')
+# Creating the cursor to interact with the database:
+c = conn.cursor()
+
+
 
 
 """
@@ -16,6 +29,7 @@ def nest_quotes(variable):
      string_variable = "'" + variable + "'"
      return string_variable
 
+
 """
 MODULE NAME: nest_brackets()
 FUNCTION: Nests the input string variable between [square brackers] for sql query
@@ -25,12 +39,6 @@ OUTPUT: returns string
 def nest_brackets(variable):
     bracket_string = "[" + variable + "]"
     return bracket_string
-
-
-# Creating the connection to the database:
-conn = sqlite3.connect('Fundementals.db')
-# Creating the cursor to interact with the database:
-c = conn.cursor()
 
 
 """
