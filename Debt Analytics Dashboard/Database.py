@@ -12,12 +12,18 @@ import bs4
 import pandas as pd
 
 # Creating the connection to the database:
-conn = sqlite3.connect('Fundementals.db')
+conn = sqlite3.connect('Fundementals.db', check_same_thread=False)
 # Creating the cursor to interact with the database:
 c = conn.cursor()
 
+# Using the existing functions below to create an ORM type class structure:
+class Ticker(object):
+    def __init__(self, Ticker):
+        self.Ticker = Ticker
+        self.Ticker_fundementals = pull_request_ticker(Ticker)
 
-
+    def getFundementals(self):
+        return self.Ticker_fundementals
 
 """
 MODULE NAME: nest_quotes()
@@ -93,27 +99,6 @@ def db_update():
 
     # Storing the now created main_dataframe to the sqlite3 database:
     main_df.to_sql('Fundementals', con =conn, if_exists='replace')
-
-
-
-"""
-MODULE NAME: pull_request_specific():
-FUNCTION: This module is used to automate the sqlite3 pull request for the data
-stored in the 'Fundementals.db'. It uses the pandas .read_sql_query() function
-to convert the data query directly into a pandas dataframe.
-INPUT: Ticker(str), index(str), column_main(str)
-OUTPUT: Returns a pandas dataframe
-"""
-def pull_request_specific(Ticker, index, column_main):
-
-    """Creating the dataframe from the .read_sql_query() function and substituting
-    key elements in the sql query string with input variables so that it pulls the desired
-    column indexed by the desired row."""
-    df = pd.read_sql_query("SELECT DISTINCT " + nest_brackets(index) + "," + "\
-     " + nest_brackets(column_main) + " FROM Fundementals WHERE Ticker = " + nest_quotes(Ticker) , con = conn, index_col = index)
-    return df
-
-
 
 """
 MODULE NAME: pull_request_ticker():
