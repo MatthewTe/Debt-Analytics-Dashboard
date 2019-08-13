@@ -1,7 +1,7 @@
 # Importing the necessary Packages:
 import sqlite3
 from sqlalchemy import create_engine
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Date, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -12,7 +12,7 @@ import bs4
 import pandas as pd
 
 # Creating the connection to the database:
-conn = sqlite3.connect('Fundementals.db', check_same_thread=False)
+conn = sqlite3.connect('Securities_Data.db', check_same_thread=False)
 # Creating the cursor to interact with the database:
 c = conn.cursor()
 
@@ -20,7 +20,7 @@ c = conn.cursor()
 class Ticker(object):
     def __init__(self, Ticker):
         self.Ticker = Ticker
-        self.Ticker_fundementals = pull_request_ticker(Ticker)
+        self.Ticker_fundementals = pull_request_ticker_Fundementals(Ticker)
 
     def getFundementals(self):
         return self.Ticker_fundementals
@@ -48,14 +48,14 @@ def nest_brackets(variable):
 
 
 """
-MODULE NAME: db_update():
+MODULE NAME: db_update_Fundementals():
 FUNCTION: This module uses the requests and bs4 packages to collect data from the stockpup.com
-website and downloads all the avalible fundemental data .csv files as dataframes. It
-then creates a main dataframe containing all the appended .csv files indexed by ticker.
-This large, main dataframe is then stored in the 'Fundementals.db' sqlite3 database.
+website and downloads all the avalible fundemental data .csv files as dataframes.
+It then uses the pandas.DataFrame.to_sql() function to create a sql table containing all
+of the fundmental data for each ticker and write the data to the sqlite3 database.
 OUTPUT: Populates a sqlite3 database.
 """
-def db_update():
+def db_update_Fundementals():
     # Dowloading the HTML data:
     url = "http://www.stockpup.com/data/"
     res = requests.get(url)
@@ -81,27 +81,17 @@ def db_update():
     # data frame, then saves each data frame as a .csv file in the "stockpup_csv_database" directoty.
     ticker_list = []
     counter = 0
-    # Creating the main dataframe that will be used to construct the large main df:
-    main_df = pd.DataFrame()
     for i in url_list:
         file_name = url_list[counter].replace("http://www.stockpup.com/data/", "")
         file_name = file_name.replace('_quarterly_financial_data', '')
         file_name = file_name.replace('.csv', '') # Removing all the values from the link that is not the ticker name
         ticker_list.append(file_name)
         df = pd.read_csv(url_list[counter]) # Pulling the .csv from each href url in the list
-        # converting it to a data frame
-        df.insert(0, 'Ticker', ticker_list[counter])
+        # Creating the sqlite3 table and populating it with the dataframe:
+        df.to_sql(file_name, con = conn, if_exists='replace', index=False)
         counter = counter + 1
-
-        # Appending each new dataframe to the main dataframe:
-        main_df = main_df.append(df)
-
-
-    # Storing the now created main_dataframe to the sqlite3 database:
-    main_df.to_sql('Fundementals', con =conn, if_exists='replace')
-
 """
-MODULE NAME: pull_request_ticker():
+MODULE NAME: pull_request_ticker_Fundementals():
 FUNCTION: This module automates the sqlite3 pull request for the data stored in
 the 'Fundementals.db' database. The input variable for the function is used in the query
 sql string to query all columns corresponding to the input ticker. The function that
@@ -109,10 +99,9 @@ pulls the data into a pandas dataframe is the .read_sql_query() function.
 INPUT: Ticker(str)
 OUTPUT: Returns a pandas dataframe
 """
-def pull_request_ticker(Ticker):
+def pull_request_ticker_Fundementals(Ticker):
     # creating the dataframe using .read_sql_query()
-    df = pd.read_sql_query("SELECT * FROM Fundementals WHERE \
-    Ticker = " + nest_quotes(Ticker), con = conn, index_col = 'Quarter end' )
+    df = pd.read_sql_query("SELECT * FROM " + Ticker, con = conn, index_col = 'Quarter end' )
     # Dropping the redundant 'Ticker' and 'index' sql query identifiers:
-    df = df.drop(['Ticker', 'index'], axis = 1)
+    #df = df.drop(['Ticker', 'index'], axis = 1)
     return df
