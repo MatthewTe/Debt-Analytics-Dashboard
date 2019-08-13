@@ -88,7 +88,7 @@ def db_update_Fundementals():
         ticker_list.append(file_name)
         df = pd.read_csv(url_list[counter]) # Pulling the .csv from each href url in the list
         # Creating the sqlite3 table and populating it with the dataframe:
-        df.to_sql(file_name, con = conn, if_exists='replace', index=False)
+        df.to_sql(file_name + '_Fundementals', con = conn, if_exists='replace', index=False)
         counter = counter + 1
 """
 MODULE NAME: pull_request_ticker_Fundementals():
@@ -101,7 +101,7 @@ OUTPUT: Returns a pandas dataframe
 """
 def pull_request_ticker_Fundementals(Ticker):
     # creating the dataframe using .read_sql_query()
-    df = pd.read_sql_query("SELECT * FROM " + Ticker, con = conn, index_col = 'Quarter end' )
+    df = pd.read_sql_query("SELECT * FROM " + Ticker + '_Fundementals', con = conn, index_col = 'Quarter end' )
     # Dropping the redundant 'Ticker' and 'index' sql query identifiers:
     #df = df.drop(['Ticker', 'index'], axis = 1)
     return df
