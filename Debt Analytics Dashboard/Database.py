@@ -10,6 +10,11 @@ import sys
 import requests
 import bs4
 import pandas as pd
+import datetime
+from datetime import datetime, timedelta
+
+# Importing the dedicated finance scraping packages:
+import pandas_datareader as pdr
 
 # Creating the connection to the database:
 conn = sqlite3.connect('Securities_Data.db', check_same_thread=False)
@@ -21,10 +26,16 @@ class Ticker(object):
     def __init__(self, Ticker):
         self.Ticker = Ticker
         self.Ticker_fundementals = pull_request_ticker_Fundementals(Ticker)
+        self.Ticker_price = pull_request_ticker_Price(Ticker)
 
+    # Returning fundemntal data from the input ticker
     def getFundementals(self):
         return self.Ticker_fundementals
 
+    # Returning historical pricing data from the input ticker:
+    def getprice(self):
+        # Updating and re-writing pricing data to the database:
+        return self.Ticker_price
 """
 MODULE NAME: nest_quotes()
 FUNCTION: Nests the input string variable between 'single quotes' for sql query
@@ -90,10 +101,29 @@ def db_update_Fundementals():
         # Creating the sqlite3 table and populating it with the dataframe:
         df.to_sql(file_name + '_Fundementals', con = conn, if_exists='replace', index=False)
         counter = counter + 1
+
+"""
+MODULE NAME: db_update_Price():
+FUNCTION: This module uses the pandas_datareader package to read the Yahoo Finance
+website for historical prices up to the current date and writes the pricing data to the
+sqlite3 database
+INPUT: Ticker(string)
+OUTPUT: Populates a sqlite3 database.
+"""
+def db_update_Price(Ticker):
+    # Defining the start and end times for the pandas datareader:
+    start = datetime.strptime('1993-01-01', '%Y-%m-%d').date()
+    end = datetime.today() - timedelta(days=1)
+    # Creating the dataframe that contains the ticker symbol:
+    df = pdr.get_data_yahoo(Ticker, start, end)
+
+    # Using the .to_sql function to create a sqlite3 table containing the dataframe:
+    df.to_sql(Ticker + '_Price', con = conn, if_exists='replace', index=True)
+
 """
 MODULE NAME: pull_request_ticker_Fundementals():
 FUNCTION: This module automates the sqlite3 pull request for the data stored in
-the 'Fundementals.db' database. The input variable for the function is used in the query
+the 'Securities_Data.db' database. The input variable for the function is used in the query
 sql string to query all columns corresponding to the input ticker. The function that
 pulls the data into a pandas dataframe is the .read_sql_query() function.
 INPUT: Ticker(str)
@@ -104,4 +134,19 @@ def pull_request_ticker_Fundementals(Ticker):
     df = pd.read_sql_query("SELECT * FROM " + Ticker + '_Fundementals', con = conn, index_col = 'Quarter end' )
     # Dropping the redundant 'Ticker' and 'index' sql query identifiers:
     #df = df.drop(['Ticker', 'index'], axis = 1)
+    return df
+
+
+"""
+MODULE NAME: pull_request_ticker_price():
+FUNCTION: This module automates the sqlite3 pull request for the data stored in
+the 'Securities_Data.db' database. The input variable for the function is used in the query
+sql string to query all columns corresponding to the input ticker. The function that
+pulls the data into a pandas dataframe is the .read_sql_query() function.
+INPUT: Ticker(str)
+OUTPUT: Returns a pandas dataframe
+"""
+def pull_request_ticker_Price(Ticker):
+    # Creating the dataframe using the .read_sql_query():
+    df = pd.read_sql_query('SELECT * FROM ' + Ticker + '_Price', con = conn, index_col = 'Date')
     return df
